@@ -3,3 +3,4 @@ build:
   commands:
     - mkdir $GOPATH/src/k8s.io/
     - git clone --branch kubeadm --quiet --depth 1 https://github.com/errordeveloper/kubernetes $GOPATH/src/k8s.io/kubernetes
+    - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubeadm"
