@@ -3,7 +3,7 @@ KUBE_VERSION ?= 1.4.0-beta.8
 RELEASE_URL_PREFIX := https://storage.googleapis.com/kubernetes-release/release
 
 LOCAL_BUILD_OUTPUT := "$(GOPATH)/src/k8s.io/kubernetes/_output/dockerized/bin/linux/amd64"
-LOCAL_BUILD_VERSION := $(shell git --git-dir $(GOPATH)/src/k8s.io/kubernetes describe)
+LOCAL_BUILD_VERSION := $(shell git --git-dir $(GOPATH)/src/k8s.io/kubernetes/.git describe)
 
 PACKAGE_REV_KUBELET := 0
 DIRNAME_KUBELET = kubelet-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBELET)
