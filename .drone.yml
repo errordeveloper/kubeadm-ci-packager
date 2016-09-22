@@ -1,0 +1,5 @@
+build:
+  image: golang:1.6
+  commands:
+    - mkdir $GOPATH/src/k8s.io/
+    - git clone --branch kubeadm --quiet --depth 1 https://github.com/errordeveloper/kubernetes $GOPATH/src/k8s.io/kubernetes
