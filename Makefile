@@ -2,7 +2,7 @@ KUBE_VERSION ?= 1.4.0-beta.8
 
 RELEASE_URL_PREFIX := https://storage.googleapis.com/kubernetes-release/release
 
-LOCAL_BUILD_OUTPUT := "$(GOPATH)/src/k8s.io/kubernetes/_output/dockerized/bin/linux/amd64"
+LOCAL_BUILD_OUTPUT := $(GOPATH)/src/k8s.io/kubernetes/_output/local/bin/linux/amd64
 LOCAL_BUILD_VERSION := $(shell git --git-dir $(GOPATH)/src/k8s.io/kubernetes/.git describe)
 
 PACKAGE_REV_KUBELET := 0
@@ -19,14 +19,14 @@ packages-from-release-output:
 	; done
 
 packages-from-local-build-output:
-	$(MAKE) copy-local-build-artefacts KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
+	$(MAKE) copy-local-build-artefacts ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	for component in kubectl kubelet ; do \
 	  $(MAKE) $$component-build ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
 	; done
 
 copy-local-build-artefacts:
-	$(CP) $(LOCAL_BUILD_OUTPUT)/kubectl build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl
-	$(CP) $(LOCAL_BUILD_OUTPUT)/kubelet build/src/$(DIRNAME_KUBECTL)/usr/sbin/kubelet
+	cp $(LOCAL_BUILD_OUTPUT)/kubectl build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl
+	cp $(LOCAL_BUILD_OUTPUT)/kubelet build/src/$(DIRNAME_KUBECTL)/usr/sbin/kubelet
 
 kubectl-build:
 	$(MAKE) kubectl-setup
