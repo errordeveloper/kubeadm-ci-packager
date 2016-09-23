@@ -2,6 +2,7 @@ build:
   image: gcr.io/kubeadm/ci-builder:latest
   commands:
     - mkdir $GOPATH/src/k8s.io/
+    # TODO: we can probably cache upstream as reference or something
     - git clone --branch kubeadm --quiet --single-branch https://github.com/errordeveloper/kubernetes $GOPATH/src/k8s.io/kubernetes
     - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
     - make packages-from-local-build-output
