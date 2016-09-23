@@ -19,6 +19,8 @@ packages-from-release-output:
 	; done
 
 packages-from-local-build-output:
+	$(MAKE) kubectl-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
+	$(MAKE) kubelet-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	$(MAKE) copy-local-build-artefacts ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	for component in kubectl kubelet ; do \
 	  $(MAKE) $$component-build ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
@@ -26,7 +28,7 @@ packages-from-local-build-output:
 
 copy-local-build-artefacts:
 	cp $(LOCAL_BUILD_OUTPUT)/kubectl build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl
-	cp $(LOCAL_BUILD_OUTPUT)/kubelet build/src/$(DIRNAME_KUBECTL)/usr/sbin/kubelet
+	cp $(LOCAL_BUILD_OUTPUT)/kubelet build/src/$(DIRNAME_KUBELET)/usr/sbin/kubelet
 
 kubectl-build:
 	$(MAKE) kubectl-setup
@@ -51,10 +53,10 @@ kubelet-build:
 	  SRCDIRS="usr/sbin lib/systemd"
 
 kubectl-setup:
-	@install -v -m 755 -d "build/src/$(DIRNAME_KUBECTL)/usr/bin/"
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBECTL)/usr/bin"
 
 kubelet-setup:
-	@install -v -m 755 -d "build/src/$(DIRNAME_KUBELET)/usr/sbin/"
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBELET)/usr/sbin"
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBELET)/lib/systemd/system"
 	@install -v -m 755 -t "build/src/$(DIRNAME_KUBELET)/lib/systemd/system" "share/kubelet/lib/systemd/system/kubelet.service"
 
