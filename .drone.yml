@@ -1,5 +1,6 @@
 build:
-  image: gcr.io/kubeadm/ci-builder:latest
+  # cat base-images/packager.dkr | docker build --tag=gcr.io/kubeadm/ci-packager:latest -
+  image: gcr.io/kubeadm/ci-packager:latest
   commands:
     - mkdir $GOPATH/src/k8s.io/
     # TODO: we can probably cache upstream as reference or something
