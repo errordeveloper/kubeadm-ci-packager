@@ -2,9 +2,8 @@ build:
   # cat base-images/packager.dkr | docker build --tag=gcr.io/kubeadm/ci-packager:latest -
   image: gcr.io/kubeadm/ci-packager:latest
   commands:
-    #- mkdir $GOPATH/src/k8s.io/
     # TODO: we can probably cache upstream as reference or something, if it takes too long to clone
-    #- git clone --branch kubeadm --quiet --single-branch https://github.com/errordeveloper/kubernetes $GOPATH/src/k8s.io/kubernetes
-    - go get -u k8s.io/kubernetes
+    - mkdir $GOPATH/src/k8s.io/
+    - git clone --branch master --quiet --single-branch https://github.com/kubernetes/kubernetes $GOPATH/src/k8s.io/kubernetes
     - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
     - make packages-from-local-build-output
