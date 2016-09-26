@@ -1,0 +1,4 @@
+FROM gcr.io/kubeadm/ci-xenial-systemd:latest
+ADD ./src/deb /pkg
+ADD ./build-debian.sh /tmp/build.sh
+RUN /tmp/build.sh

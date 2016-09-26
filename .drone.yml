@@ -1,9 +1,21 @@
-build:
-  # cat base-images/packager.dkr | docker build --tag=gcr.io/kubeadm/ci-packager:latest -
-  image: gcr.io/kubeadm/ci-packager:latest
-  commands:
-    # TODO: we can probably cache upstream as reference or something, if it takes too long to clone
-    - mkdir $GOPATH/src/k8s.io/
-    - git clone --branch master --quiet --single-branch https://github.com/kubernetes/kubernetes $GOPATH/src/k8s.io/kubernetes
-    - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
-    - make packages-from-local-build-output
+pipeline:
+  packages:
+    # cat images/packager.dkr | docker build --tag=gcr.io/kubeadm/ci-packager:latest -
+    image: gcr.io/kubeadm/ci-packager:latest
+    commands:
+      # TODO: we can probably cache upstream as reference or something, if it takes too long to clone
+      - mkdir $GOPATH/src/k8s.io/
+      - git clone --branch master --quiet --single-branch https://github.com/kubernetes/kubernetes $GOPATH/src/k8s.io/kubernetes
+      - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
+      - make packages-from-local-build-output
+      - make copy-deb-packages
+      #- make copy-rpm-packages
+
+  xenial:
+    image: plugins/docker
+    repo: gcr.io/kubeadm/ci-xenial-systemd
+    context: images
+    dockerfile: images/xenial-systemd-test.dkr
+    tag:
+      - ${DRONE_BRANCH}-latest
+      - ${DRONE_BRANCH}-${DRONE_COMMIT}

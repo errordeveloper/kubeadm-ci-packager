@@ -17,7 +17,7 @@ KUBE_VERSION ?= 1.4.0-beta.8
 RELEASE_URL_PREFIX := https://storage.googleapis.com/kubernetes-release/release
 
 LOCAL_BUILD_OUTPUT := $(GOPATH)/src/k8s.io/kubernetes/_output/local/bin/linux/amd64
-LOCAL_BUILD_VERSION := $(shell git --git-dir $(GOPATH)/src/k8s.io/kubernetes/.git describe)
+LOCAL_BUILD_VERSION := $(shell git --git-dir $(GOPATH)/src/k8s.io/kubernetes/.git describe | sed 's/^v\(.*\)/\1/')
 
 PACKAGE_REV_KUBELET := 0
 DIRNAME_KUBELET = kubelet-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBELET)
@@ -39,6 +39,14 @@ packages-from-local-build-output:
 	for component in kubectl kubelet ; do \
 	  $(MAKE) $$component-build ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
 	; done
+
+copy-deb-packages:
+	@install -v -m 0755 -d "images/src/deb"
+	@find build/pkg/ -name '*.deb' | xargs -n 1 install -v -m 644 -t "images/src/deb"
+
+#copy-rpm-packages:
+#	@install -v -m 0755 -d "images/src/rpm"
+#	@find build/pkg/ -name '*.rpm' | xargs -n 1 install -v -m 644 -t "images/src/rpm"
 
 copy-local-build-artefacts:
 	cp $(LOCAL_BUILD_OUTPUT)/kubectl build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl
