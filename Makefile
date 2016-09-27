@@ -38,8 +38,9 @@ packages-from-release-output:
 packages-from-local-build-output:
 	$(MAKE) kubectl-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	$(MAKE) kubelet-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
+	$(MAKE) kubeadm-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	$(MAKE) copy-local-build-artefacts ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
-	for component in kubectl kubelet ; do \
+	for component in kubectl kubelet kubeadm ; do \
 	  $(MAKE) $$component-build ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
 	; done
 
@@ -99,7 +100,7 @@ kubelet-setup:
 
 kubeadm-setup:
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/usr/sbin"
-	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system"
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system/kubelet.service.d"
 	@install -v -m 755 -t "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system/kubelet.service.d" "share/kubeadm/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
 
 build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl:
