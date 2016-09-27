@@ -17,5 +17,5 @@ pipeline:
     context: images
     dockerfile: images/xenial-systemd-test.dkr
     tag:
-      - ${DRONE_BRANCH}-latest
-      - ${DRONE_BRANCH}-${DRONE_COMMIT}
+      - test-${DRONE_BRANCH}-latest
+      - test-${DRONE_BRANCH}-${DRONE_COMMIT}-${DRONE_BUILD_NUMBER}
