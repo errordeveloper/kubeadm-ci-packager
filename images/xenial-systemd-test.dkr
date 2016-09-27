@@ -1,4 +1,4 @@
-FROM gcr.io/kubeadm/ci-xenial-systemd:latest
+FROM gcr.io/kubeadm/ci-xenial-systemd:master-c091b0b237151805124b98de6ec13452aeccf20b
 ADD ./src/deb /pkg
 ADD ./build-debian.sh /tmp/build.sh
 RUN /tmp/build.sh
