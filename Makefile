@@ -28,6 +28,13 @@ DIRNAME_KUBECTL = kubectl-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBECTL)
 PACKAGE_REV_KUBEADM := 0
 DIRNAME_KUBEADM = kubeadm-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBEADM)
 
+GIT_REV_KUBECNI := 07a8a28637e97b22eb8dfe710eeae1344f69d16e
+PACKAGE_REV_KUBECNI := 0
+PACKAGE_VER_KUBECNI := 0.3.0.1-07a8a2
+DIRNAME_KUBECNI = kubecni-$(ARCH)-$(PACKAGE_VER_KUBECNI)-$(PACKAGE_REV_KUBECNI)
+
+CURL := curl --location --silent --fail
+
 packages-from-release-output:
 	for component in kubectl kubelet kubeadm ; do \
 	  for arch in amd64 arm64 ; do \
@@ -36,11 +43,11 @@ packages-from-release-output:
 	; done
 
 packages-from-local-build-output:
-	$(MAKE) kubectl-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
-	$(MAKE) kubelet-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
-	$(MAKE) kubeadm-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
-	$(MAKE) copy-local-build-artefacts ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
 	for component in kubectl kubelet kubeadm ; do \
+	  $(MAKE) $$component-setup ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
+	; done
+	$(MAKE) copy-local-build-artefacts ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)"
+	for component in kubectl kubelet kubeadm kubecni ; do \
 	  $(MAKE) $$component-build ARCH="amd64" KUBE_VERSION="$(LOCAL_BUILD_VERSION)" \
 	; done
 
@@ -90,6 +97,18 @@ kubeadm-build:
 	  DIRNAME="$(DIRNAME_KUBEADM)" \
 	  SRCDIRS="usr/sbin etc/systemd"
 
+kubecni-build:
+	$(MAKE) kubecni-setup
+	$(MAKE) kubecni-fetch
+	$(MAKE) build-packages \
+	  NAME="kubecni" \
+	  DESC="kubecni: Container Networking Interface plugins for Kubernetes" \
+	  KUBE_VERSION="$(PACKAGE_VER_KUBECNI)" \
+	  ARCH="$(ARCH)" \
+	  ITER="$(PACKAGE_REV_KUBECNI)" \
+	  DIRNAME="$(DIRNAME_KUBECNI)" \
+	  SRCDIRS="usr/lib"
+
 kubectl-setup:
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBECTL)/usr/bin"
 
@@ -103,14 +122,20 @@ kubeadm-setup:
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system/kubelet.service.d"
 	@install -v -m 755 -t "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system/kubelet.service.d" "share/kubeadm/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
 
+kubecni-setup:
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBECNI)/usr/lib/kubernetes/cni"
+
 build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl:
-	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubectl" --output "$@"
+	$(CURL) "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubectl" --output "$@"
 
 build/src/$(DIRNAME_KUBELET)/usr/sbin/kubelet:
-	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubelet" --output "$@"
+	$(CURL) "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubelet" --output "$@"
 
 build/src/$(DIRNAME_KUBEADM)/usr/sbin/kubeadm:
-	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubeadm" --output "$@"
+	$(CURL) "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubeadm" --output "$@"
+
+kubecni-fetch:
+	$(CURL) "$(RELEASE_URL_PREFIX)/../network-plugins/cni-$(ARCH)-$(GIT_REV_KUBECNI).tar.gz" | tar xz -C build/src/$(DIRNAME_KUBECNI)/usr/lib/kubernetes/cni
 
 build-packages:
 	@mkdir -p build/pkg/$(DIRNAME)
