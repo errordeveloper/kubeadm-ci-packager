@@ -23,10 +23,13 @@ PACKAGE_REV_KUBELET := 0
 DIRNAME_KUBELET = kubelet-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBELET)
 
 PACKAGE_REV_KUBECTL := 0
-DIRNAME_KUBECTL = kubectl-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBELET)
+DIRNAME_KUBECTL = kubectl-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBECTL)
+
+PACKAGE_REV_KUBEADM := 0
+DIRNAME_KUBEADM = kubeadm-$(ARCH)-$(KUBE_VERSION)-$(PACKAGE_REV_KUBEADM)
 
 packages-from-release-output:
-	for component in kubectl kubelet ; do \
+	for component in kubectl kubelet kubeadm ; do \
 	  for arch in amd64 arm64 ; do \
 	    $(MAKE) $$component-build ARCH="$$arch" \
 	  ; done \
@@ -51,6 +54,7 @@ copy-deb-packages:
 copy-local-build-artefacts:
 	cp $(LOCAL_BUILD_OUTPUT)/kubectl build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl
 	cp $(LOCAL_BUILD_OUTPUT)/kubelet build/src/$(DIRNAME_KUBELET)/usr/sbin/kubelet
+	cp $(LOCAL_BUILD_OUTPUT)/kubeadm build/src/$(DIRNAME_KUBEADM)/usr/sbin/kubeadm
 
 kubectl-build:
 	$(MAKE) kubectl-setup
@@ -74,6 +78,17 @@ kubelet-build:
 	  DIRNAME="$(DIRNAME_KUBELET)" \
 	  SRCDIRS="usr/sbin lib/systemd"
 
+kubeadm-build:
+	$(MAKE) kubeadm-setup
+	$(MAKE) build/src/$(DIRNAME_KUBEADM)/usr/sbin/kubeadm
+	$(MAKE) build-packages \
+	  NAME="kubeadm" \
+	  DESC="kubeadm: The Kubernetes commadn line tool for creating and managing cluster lifecycle" \
+	  ARCH="$(ARCH)" \
+	  ITER="$(PACKAGE_REV_KUBEADM)" \
+	  DIRNAME="$(DIRNAME_KUBEADM)" \
+	  SRCDIRS="usr/sbin etc/systemd"
+
 kubectl-setup:
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBECTL)/usr/bin"
 
@@ -82,11 +97,19 @@ kubelet-setup:
 	@install -v -m 755 -d "build/src/$(DIRNAME_KUBELET)/lib/systemd/system"
 	@install -v -m 755 -t "build/src/$(DIRNAME_KUBELET)/lib/systemd/system" "share/kubelet/lib/systemd/system/kubelet.service"
 
+kubeadm-setup:
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/usr/sbin"
+	@install -v -m 755 -d "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system"
+	@install -v -m 755 -t "build/src/$(DIRNAME_KUBEADM)/etc/systemd/system/kubelet.service.d" "share/kubeadm/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+
 build/src/$(DIRNAME_KUBECTL)/usr/bin/kubectl:
 	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubectl" --output "$@"
 
 build/src/$(DIRNAME_KUBELET)/usr/sbin/kubelet:
 	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubelet" --output "$@"
+
+build/src/$(DIRNAME_KUBEADM)/usr/sbin/kubeadm:
+	curl --location --silent --fail "$(RELEASE_URL_PREFIX)/v$(KUBE_VERSION)/bin/linux/$(ARCH)/kubeadm" --output "$@"
 
 build-packages:
 	@mkdir -p build/pkg/$(DIRNAME)
