@@ -5,17 +5,32 @@ pipeline:
     commands:
       # TODO: we can probably cache upstream as reference or something, if it takes too long to clone
       - mkdir $GOPATH/src/k8s.io/
-      - git clone --branch master --quiet --single-branch https://github.com/kubernetes/kubernetes $GOPATH/src/k8s.io/kubernetes
-      - make -C $GOPATH/src/k8s.io/kubernetes WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
+      - src=$GOPATH/src/k8s.io/kubernetes
+      - git clone --branch master --quiet --single-branch https://github.com/kubernetes/kubernetes $src
+      - make -C $src WHAT="cmd/kubelet cmd/kubectl cmd/kubeadm"
       - make packages-from-local-build-output
       - make copy-deb-packages
       #- make copy-rpm-packages
+      #- make -C $src WHAT="cmd/kube-apiserver cmd/kube-controller-manager cmd/kube-discovery cmd/kube-proxy plugin/cmd/kube-scheduler"
+      - make -C $src WHAT="cmd/hyperkube"
+      - make copy-binaries-for-docker-images
 
   xenial:
     image: plugins/docker
     repo: gcr.io/kubeadm/ci-xenial-systemd
     context: images
     dockerfile: images/xenial-systemd-test.dkr
+    tag:
+      - test-${DRONE_BRANCH}-latest
+      - test-${DRONE_BRANCH}-${DRONE_COMMIT}-${DRONE_BUILD_NUMBER}
+
+  hyperkube-image:
+    image: plugins/docker
+    repo: gcr.io/kubeadm/hyperkube-amd64
+    context: images/kube-cluster-components
+    dockerfile: images/kube-cluster-components/Dockerfile
+    build_args:
+      - binary=hyperkube
     tag:
       - test-${DRONE_BRANCH}-latest
       - test-${DRONE_BRANCH}-${DRONE_COMMIT}-${DRONE_BUILD_NUMBER}
